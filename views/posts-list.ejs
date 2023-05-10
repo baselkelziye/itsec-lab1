@@ -6,7 +6,7 @@
   </head>
 
   <body>
-    <%- include('includes/header') %>
+    <%- include('includes/header'), {name: name} %>
     <main id="all-posts">
       <h1>All Posts</h1>
       <% if (!posts || posts.length === 0){ %>

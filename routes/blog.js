@@ -17,7 +17,7 @@ router.post("/login", async function (req, res) {
   const result = await db.query(query);
   if (result[0].length > 0) {
     req.session.loggedIn = true;
-    req.session.username = req.body.name;
+    req.session.username = result[0][0].name;
     res.redirect("/posts");
   } else {
     res.render("login");
@@ -28,7 +28,8 @@ router.get("/new-post", async function (req, res) {
   const [authors] = await db.query("SELECT * FROM authors");
   console.log("in authors");
   console.log(authors);
-  if (req.session.loggedIn) res.render("create-post", { authors: authors });
+  if (req.session.loggedIn)
+    res.render("create-post", { authors: authors, name: req.session.username });
   else res.render("login");
 });
 
@@ -39,7 +40,8 @@ router.get("/posts", async function (req, res) {
     `;
   const [posts] = await db.query(query);
 
-  if (req.session.loggedIn) res.render("posts-list", { posts: posts });
+  if (req.session.loggedIn)
+    res.render("posts-list", { posts: posts, name: req.session.username });
   else res.render("login");
 });
 
@@ -67,7 +69,8 @@ router.get("/posts/:id", async function (req, res) {
       day: "numeric",
     }),
   };
-  if (req.session.loggedIn) res.render("post-detail", { post: postData });
+  if (req.session.loggedIn)
+    res.render("post-detail", { post: postData, name: req.session.username });
   else res.render("login");
 });
 router.post("/posts", async function (req, res) {
@@ -114,7 +117,8 @@ router.get("/posts/:id/edit", async function (req, res) {
       return res.status(404).render("404");
     }
   } else res.render("login");
-  if (req.session.loggedIn) res.render("update-post", { post: posts[0] });
+  if (req.session.loggedIn)
+    res.render("update-post", { post: posts[0], name: req.session.username });
   else res.render("login");
 });
 

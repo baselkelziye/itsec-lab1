@@ -6,7 +6,7 @@
   </head>
 
   <body>
-    <%- include('includes/header') %>
+    <%- include('includes/header'), {name: name} %>
     <main id="post-detail">
       <h1><%-post.title%></h1>
       <section id="post-meta">
