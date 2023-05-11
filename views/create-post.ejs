@@ -26,7 +26,7 @@
           <label for="author">Select Author</label>
           <select id="author" name="author">
             <% for (const author of authors){ %>
-            <option value="<%= author.id%>"><%= author.name%></option>
+            <option value="<%- author.id%>"><%- author.name%></option>
             <% } %>
           </select>
         </div>
