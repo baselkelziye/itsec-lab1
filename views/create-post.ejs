@@ -6,7 +6,7 @@
   </head>
 
   <body>
-    <%- include('includes/header') %>
+    <%- include('includes/header'), {name: name} %>
     <main>
       <h1>Add a new post</h1>
       <form action="/posts" method="POST">

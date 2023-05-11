@@ -4,13 +4,11 @@ const router = express.Router();
 
 const db = require("../data/database");
 
-var loggedIn = false;
+// router.get("/", function (req, res) {
+//   res.redirect("/posts");
+// });
 
 router.get("/", function (req, res) {
-  res.redirect("/posts");
-});
-
-router.get("/login", function (req, res) {
   res.render("login");
 });
 router.post("/login", async function (req, res) {
@@ -18,9 +16,11 @@ router.post("/login", async function (req, res) {
   const query = `SELECT * FROM authors WHERE name = '${req.body.name}' AND password = '${req.body.password}'`;
   const result = await db.query(query);
   if (result[0].length > 0) {
+    req.session.loggedIn = true;
+    req.session.username = result[0][0].name;
     res.redirect("/posts");
   } else {
-    res.redirect("/login");
+    res.render("login");
   }
 });
 
@@ -28,7 +28,9 @@ router.get("/new-post", async function (req, res) {
   const [authors] = await db.query("SELECT * FROM authors");
   console.log("in authors");
   console.log(authors);
-  res.render("create-post", { authors: authors });
+  if (req.session.loggedIn)
+    res.render("create-post", { authors: authors, name: req.session.username });
+  else res.render("login");
 });
 
 router.get("/posts", async function (req, res) {
@@ -38,7 +40,9 @@ router.get("/posts", async function (req, res) {
     `;
   const [posts] = await db.query(query);
 
-  res.render("posts-list", { posts: posts });
+  if (req.session.loggedIn)
+    res.render("posts-list", { posts: posts, name: req.session.username });
+  else res.render("login");
 });
 
 router.get("/posts/:id", async function (req, res) {
@@ -49,9 +53,11 @@ router.get("/posts/:id", async function (req, res) {
     `;
 
   const [posts] = await db.query(query, [req.params.id]);
-  if (!posts || posts.length === 0) {
-    return res.status(404).render("404");
-  }
+  if (req.session.loggedIn) {
+    if (!posts || posts.length === 0) {
+      return res.status(404).render("404");
+    }
+  } else res.render("login");
 
   const postData = {
     ...posts[0],
@@ -63,7 +69,9 @@ router.get("/posts/:id", async function (req, res) {
       day: "numeric",
     }),
   };
-  res.render("post-detail", { post: postData });
+  if (req.session.loggedIn)
+    res.render("post-detail", { post: postData, name: req.session.username });
+  else res.render("login");
 });
 router.post("/posts", async function (req, res) {
   const data = [
@@ -76,7 +84,8 @@ router.post("/posts", async function (req, res) {
     "INSERT INTO posts (title, summary,body,author_id) VALUES (?)",
     [data]
   );
-  res.redirect("/posts");
+  if (req.session.loggedIn) res.redirect("/posts");
+  else res.render("login");
 });
 
 router.post("/posts/:id/edit", async function (req, res) {
@@ -88,13 +97,14 @@ router.post("/posts/:id/edit", async function (req, res) {
   ];
   const query = `
   UPDATE blog.posts set title = ?, summary = ?, body = ? WHERE id = ?`;
-  var b = await db.query(query, [
+  await db.query(query, [
     req.body.title,
     req.body.summary,
     req.body.content,
     req.params.id,
   ]);
-  res.redirect("/posts");
+  if (req.session.loggedIn) res.redirect("/posts");
+  else res.render("login");
 });
 
 router.get("/posts/:id/edit", async function (req, res) {
@@ -102,10 +112,14 @@ router.get("/posts/:id/edit", async function (req, res) {
   SELECT * FROM posts WHERE id = ?
   `;
   const [posts] = await db.query(query, [req.params.id]);
-  if (!posts || posts.length === 0) {
-    return res.status(404).render("404");
-  }
-  res.render("update-post", { post: posts[0] });
+  if (req.session.loggedIn) {
+    if (!posts || posts.length === 0) {
+      return res.status(404).render("404");
+    }
+  } else res.render("login");
+  if (req.session.loggedIn)
+    res.render("update-post", { post: posts[0], name: req.session.username });
+  else res.render("login");
 });
 
 router.post("/posts/:id/delete", async function (req, res) {
@@ -113,6 +127,7 @@ router.post("/posts/:id/delete", async function (req, res) {
   DELETE from posts where id = ?;
   `;
   await db.query(query, [req.params.id]);
-  res.redirect("/posts");
+  if (req.session.loggedIn) res.redirect("/posts");
+  else res.render("login");
 });
 module.exports = router;
