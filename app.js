@@ -2,21 +2,10 @@ const path = require('path');
 
 const express = require('express');
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
-
-const options = {
-  host: 'localhost',
-  port: 3306,
-  user: 'root',
-  password: '12345678',
-  createDatabaseTable: false,
-  database: 'blog',
-};
+// const MySQLStore = require('express-mysql-session')(session);
 
 const exp = require('constants');
 const app = express();
-
-const sessionStore = new MySQLStore(options); // Activate EJS view engine
 
 const blogRoutes = require('./routes/blog');
 
@@ -29,13 +18,12 @@ app.use(express.json());
 
 app.use(
   session({
-    key: 'session_cookie_name',
-    secret: 'session_cookie_secret',
-    store: sessionStore,
-    resave: false,
+    secret: 'secret',
+    resave: true,
     saveUninitialized: true,
   })
 );
+
 app.use(function (error, req, res, next) {
   // Default error handling function
   // Will become active whenever any route / middleware crashes

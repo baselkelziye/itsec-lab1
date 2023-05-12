@@ -9,7 +9,7 @@ const db = require('../data/database');
 // });
 
 router.get('/', function (req, res) {
-  res.redirect('/posts');
+  res.redirect('/login');
 });
 
 router.get('/login', function (req, res) {
@@ -46,6 +46,12 @@ router.get('/new-post', async function (req, res) {
   if (req.session.loggedIn)
     res.render('create-post', { authors: authors, name: req.session.username });
   else res.render('login');
+});
+
+router.get('/users', async function (req, res) {
+  const [authors] = await db.query('SELECT * FROM authors');
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(authors));
 });
 
 router.get('/posts', async function (req, res) {
